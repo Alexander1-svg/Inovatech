@@ -1,8 +1,8 @@
-name: CI/CD Tienda Perritos - DB
+name: CI/CD Innovatech - DB
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "deploy" ]    # ← rama deploy
     paths:
       - "db/**"
 
@@ -22,28 +22,28 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login en Amazon ECR (runner)
+    - name: Login en Amazon ECR
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build imagen DB y push a ECR
+    - name: Build y push imagen DB a ECR
       run: |
         cd db
-        docker build -t tienda-db .
-        docker tag tienda-db:latest ${{ secrets.ECR_REPO_URL_DB }}:latest
+        docker build -t innovatech-db .
+        docker tag innovatech-db:latest ${{ secrets.ECR_REPO_URL_DB }}:latest
         docker push ${{ secrets.ECR_REPO_URL_DB }}:latest
 
-    - name: Desplegar DB vía SSM
+    - name: Desplegar DB en EC2 vía SSM
       run: |
         aws ssm send-command \
           --instance-ids ${{ secrets.EC2_DB_INSTANCE_ID }} \
           --document-name "AWS-RunShellScript" \
-          --comment "Actualizar tienda-db desde ECR" \
+          --comment "Desplegar innovatech-db desde ECR" \
           --parameters '{"commands":[
             "set -e",
             "aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}",
             "docker pull ${{ secrets.ECR_REPO_URL_DB }}:latest",
-            "docker stop tienda-db || true",
-            "docker rm tienda-db || true",
-            "docker run -d --name tienda-db -p 3306:3306 -v dbdata:/var/lib/mysql ${{ secrets.ECR_REPO_URL_DB }}:latest"
+            "docker stop innovatech-db || true",
+            "docker rm innovatech-db || true",
+            "docker run -d --name innovatech-db -p 3306:3306 -v innovatech-db-data:/var/lib/mysql --env-file /home/ec2-user/db/.env ${{ secrets.ECR_REPO_URL_DB }}:latest"
           ]}' \
           --output text

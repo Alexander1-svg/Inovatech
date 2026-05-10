@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: innovatech-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"

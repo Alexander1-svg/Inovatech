@@ -1,8 +1,8 @@
-name: CI/CD Tienda Perritos - Backend
+name: CI/CD Innovatech - Backend
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "deploy" ]    # ← rama deploy como pide la rúbrica
     paths:
       - "backend/**"
 
@@ -22,28 +22,28 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login en Amazon ECR (runner)
+    - name: Login en Amazon ECR
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build imagen Backend y push a ECR
+    - name: Build y push imagen Backend a ECR
       run: |
         cd backend
-        docker build -t tienda-backend .
-        docker tag tienda-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
+        docker build -t innovatech-backend .
+        docker tag innovatech-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
         docker push ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
 
-    - name: Desplegar Backend vía SSM
+    - name: Desplegar Backend en EC2 vía SSM
       run: |
         aws ssm send-command \
           --instance-ids ${{ secrets.EC2_BACKEND_INSTANCE_ID }} \
           --document-name "AWS-RunShellScript" \
-          --comment "Actualizar tienda-backend desde ECR" \
+          --comment "Desplegar innovatech-backend desde ECR" \
           --parameters '{"commands":[
             "set -e",
             "aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}",
             "docker pull ${{ secrets.ECR_REPO_URL_BACKEND }}:latest",
-            "docker stop tienda-backend || true",
-            "docker rm tienda-backend || true",
-            "docker run -d --name tienda-backend -p 3001:3001 ${{ secrets.ECR_REPO_URL_BACKEND }}:latest"
+            "docker stop innovatech-backend || true",
+            "docker rm innovatech-backend || true",
+            "docker run -d --name innovatech-backend -p 3001:3001 --env-file /home/ec2-user/backend/.env ${{ secrets.ECR_REPO_URL_BACKEND }}:latest"
           ]}' \
           --output text
