@@ -22,7 +22,6 @@ jobs:
 
     - name: Build y push imagen DB
       run: |
-        cd db
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest ./frontend
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest
 
