@@ -138,3 +138,5 @@ app.listen(PORT, async () => {
   console.log(`Servidor backend escuchando en puerto ${PORT}`);
   await initDb();
 });
+
+// Innovatech Backend v1.0
