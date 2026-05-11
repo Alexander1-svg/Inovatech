@@ -23,6 +23,7 @@ jobs:
     - name: Build y push imagen DB
       env:
         DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKER_BUILDKIT: 0
       run: |
         docker build -t $DOCKER_USER/innovatech-db:latest ./db
         docker push $DOCKER_USER/innovatech-db:latest
