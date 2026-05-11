@@ -2,7 +2,7 @@ name: CI/CD Innovatech - DB
 
 on:
   push:
-    branches: [ "deploy" ]    # ← rama deploy
+    branches: [ "deploy" ]
     paths:
       - "db/**"
 
@@ -14,6 +14,18 @@ jobs:
     - name: Checkout código
       uses: actions/checkout@v3
 
+    - name: Login en Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build y push imagen DB
+      run: |
+        cd db
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest
+
     - name: Configurar credenciales AWS
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -22,28 +34,17 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login en Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Build y push imagen DB a ECR
-      run: |
-        cd db
-        docker build -t innovatech-db .
-        docker tag innovatech-db:latest ${{ secrets.ECR_REPO_URL_DB }}:latest
-        docker push ${{ secrets.ECR_REPO_URL_DB }}:latest
-
     - name: Desplegar DB en EC2 vía SSM
       run: |
         aws ssm send-command \
           --instance-ids ${{ secrets.EC2_DB_INSTANCE_ID }} \
           --document-name "AWS-RunShellScript" \
-          --comment "Desplegar innovatech-db desde ECR" \
+          --comment "Desplegar innovatech-db desde Docker Hub" \
           --parameters '{"commands":[
             "set -e",
-            "aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}",
-            "docker pull ${{ secrets.ECR_REPO_URL_DB }}:latest",
+            "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest",
             "docker stop innovatech-db || true",
             "docker rm innovatech-db || true",
-            "docker run -d --name innovatech-db -p 3306:3306 -v innovatech-db-data:/var/lib/mysql --env-file /home/ec2-user/db/.env ${{ secrets.ECR_REPO_URL_DB }}:latest"
+            "docker run -d --name innovatech-db -p 3306:3306 -v innovatech-db-data:/var/lib/mysql --env-file /home/ec2-user/db/.env ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest"
           ]}' \
           --output text
