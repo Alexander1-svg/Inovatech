@@ -3,8 +3,8 @@ name: CI/CD Innovatech - DB
 on:
   push:
     branches: [ "deploy" ]
-    paths:
-      - "db/**"
+    # paths:
+    #  - "db/**"
 
 jobs:
   build-push-deploy-db:

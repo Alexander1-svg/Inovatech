@@ -3,8 +3,8 @@ name: CI/CD Innovatech - Frontend
 on:
   push:
     branches: [ "deploy" ]
-    paths:
-      - "frontend/**"
+    # paths:
+    #  - "frontend/**"
 
 jobs:
   build-push-deploy-frontend:
