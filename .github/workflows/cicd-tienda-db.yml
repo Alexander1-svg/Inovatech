@@ -21,9 +21,11 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build y push imagen DB
+      env:
+        DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest ./frontend
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-db:latest
+        docker build -t $DOCKER_USER/innovatech-db:latest ./db
+        docker push $DOCKER_USER/innovatech-db:latest
 
     - name: Configurar credenciales AWS
       uses: aws-actions/configure-aws-credentials@v4
