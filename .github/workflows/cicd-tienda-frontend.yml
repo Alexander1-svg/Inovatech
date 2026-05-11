@@ -38,12 +38,5 @@ jobs:
         aws ssm send-command \
           --instance-ids ${{ secrets.EC2_FRONTEND_INSTANCE_ID }} \
           --document-name "AWS-RunShellScript" \
-          --comment "Desplegar innovatech-frontend desde Docker Hub" \
-          --parameters '{"commands":[
-            "set -e",
-            "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-frontend:latest",
-            "docker stop innovatech-frontend || true",
-            "docker rm innovatech-frontend || true",
-            "docker run -d --name innovatech-frontend -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-frontend:latest"
-          ]}' \
+          --parameters commands=["set -e","docker pull alexander1svg/innovatech-frontend:latest","docker stop innovatech-frontend || true","docker rm innovatech-frontend || true","docker run -d --name innovatech-frontend -p 80:80 alexander1svg/innovatech-frontend:latest"] \
           --output text

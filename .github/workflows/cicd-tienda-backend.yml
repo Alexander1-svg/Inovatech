@@ -38,12 +38,5 @@ jobs:
         aws ssm send-command \
           --instance-ids ${{ secrets.EC2_BACKEND_INSTANCE_ID }} \
           --document-name "AWS-RunShellScript" \
-          --comment "Desplegar innovatech-backend desde Docker Hub" \
-          --parameters '{"commands":[
-            "set -e",
-            "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-backend:latest",
-            "docker stop innovatech-backend || true",
-            "docker rm innovatech-backend || true",
-            "docker run -d --name innovatech-backend -p 3001:3001 --env-file /home/ec2-user/backend/.env ${{ secrets.DOCKERHUB_USERNAME }}/innovatech-backend:latest"
-          ]}' \
+          --parameters commands=["set -e","aws ecr get-login-password || true","docker pull alexander1svg/innovatech-backend:latest","docker stop innovatech-backend || true","docker rm innovatech-backend || true","docker run -d --name innovatech-backend -p 3001:3001 --env-file /home/ec2-user/backend/.env alexander1svg/innovatech-backend:latest"] \
           --output text
