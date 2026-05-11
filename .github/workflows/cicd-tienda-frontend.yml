@@ -14,17 +14,6 @@ jobs:
     - name: Checkout código
       uses: actions/checkout@v3
 
-    - name: Login en Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build y push imagen Frontend
-      run: |
-        docker build -t alexander1svg/innovatech-frontend:latest ./frontend
-        docker push alexander1svg/innovatech-frontend:latest
-
     - name: Configurar credenciales AWS
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -33,10 +22,34 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Desplegar Frontend en EC2 vía SSM
+    - name: Login en ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build y push imagen Frontend a ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: innovatech-frontend
+        IMAGE_TAG: latest
       run: |
-        aws ssm send-command \
-          --instance-ids ${{ secrets.EC2_FRONTEND_INSTANCE_ID }} \
-          --document-name "AWS-RunShellScript" \
-          --parameters commands=["set -e","docker pull alexander1svg/innovatech-frontend:latest","docker stop innovatech-frontend || true","docker rm innovatech-frontend || true","docker run -d --name innovatech-frontend -p 80:80 alexander1svg/innovatech-frontend:latest"] \
-          --output text
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./frontend
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Desplegar Frontend en EC2 vía SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.EC2_FRONTEND_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+            docker login --username AWS --password-stdin \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/innovatech-frontend:latest
+          docker stop innovatech-frontend || true
+          docker rm innovatech-frontend || true
+          docker run -d \
+            --name innovatech-frontend \
+            -p 80:80 \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/innovatech-frontend:latest
