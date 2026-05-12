@@ -37,26 +37,6 @@ cd frontend
 docker compose up -d
 ```
 
-## Variables de entorno
-
-### backend/.env
-```env
-PORT=3001
-DB_HOST=<IP_PRIVADA_EC2_DB>
-DB_USER=alumno
-DB_PASSWORD=alumno123
-DB_NAME=innovatech
-DB_PORT=3306
-```
-
-### db/.env
-```env
-MYSQL_ROOT_PASSWORD=admin123
-MYSQL_DATABASE=innovatech
-MYSQL_USER=alumno
-MYSQL_PASSWORD=alumno123
-```
-
 ## Pipeline CI/CD
 
 Cada servicio tiene su workflow en `.github/workflows/`. El pipeline se activa con push en la rama `deploy` y ejecuta:
