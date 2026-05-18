@@ -186,4 +186,4 @@ btnCancelar.addEventListener("click", () => {
 // Cargar productos al iniciar
 cargarProductos();
 
-// Innovatech Frontend v1.1
+// Innovatech Frontend v1.1.0

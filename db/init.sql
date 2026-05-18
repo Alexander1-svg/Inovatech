@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS productos (
 );
 
 -- Innovatech Database Initialization Script
--- Version 1.1
+-- Version 1.1.0
