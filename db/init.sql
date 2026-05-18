@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS productos (
     stock INT NOT NULL
 );
 
+-- Innovatech Database Initialization Script
+-- Version 1.1
