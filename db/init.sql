@@ -17,4 +17,4 @@ INSERT INTO productos (nombre, descripcion, precio, stock) VALUES
 ('Bravery pollo Adulto raza pequena', 'Sabor a pollo', 25990, 20);
 
 -- Innovatech Database Initialization Script
--- Version 1.1.0
+-- Version 1.1.3

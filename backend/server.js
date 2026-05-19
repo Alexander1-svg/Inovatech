@@ -139,4 +139,4 @@ app.listen(PORT, async () => {
   await initDb();
 });
 
-// Innovatech Backend v1.1.0
+// Innovatech Backend v1.1.2
